@@ -1,8 +1,24 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<windows.h>
+/*
+ * Battaglia Navale / Battleship
+ * 
+ * An implementation of the classic board game Battleship in C
+ * using the Windows.h library for console-based graphics.
+ * 
+ * Copyright (c) 2023 Battaglia Navale
+ * 
+ * Questo software è concesso in licenza secondo i termini della licenza MIT.
+ * Consultare il file LICENSE.md per i dettagli completi.
+ * 
+ * This software is licensed under the terms of the MIT license.
+ * See the LICENSE.md file for complete details.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
 #include <time.h>
-int B[10][10],ra[5],te=0,o=0,k,j=1,ok,tsc,tsr,ok2,srb,scb,s,a,sr,r,sc,nag,nab,c,n,nl,NG[26],NB[26], np[5];
+int B[10][10],ra[5],te,o=0,k,j=1,ok,tsc,tsr,ok2,srb,scb,s,a,sr,r,sc,nag,nab,c,n,nl,NG[26],NB[26], np[5];
+int pp[100], dp = 0; // possible positions, position size
 char rr,ro ,P[10][10], rf[2];
 short i;
 void gotoxy(short x, short y);
@@ -18,12 +34,12 @@ int main(){
         printf("            ");
         gotoxy(107-i, 16);
         printf("Navale ");
-        for (a = 0; a < 10000000 ; a++) {}
+        Sleep(1);
     }
-    for (a = 0; a < 400000000 ; a++) {}
+    Sleep(250);
     gotoxy(51, 18);
     printf("Caricamento...");
-    for (a = 0; a < 700000000 ; a++) {}
+    Sleep(500);
     gotoxy(50, 15);
     printf("            ");
     gotoxy(50, 16);
@@ -32,7 +48,7 @@ int main(){
     printf("              ");
 
     do {
-        //inizio reset e inizializazioni
+        //inizio reset e inizializzazioni
         i=2;
         j=1;
         te=0;
@@ -58,7 +74,7 @@ int main(){
                 P[r][c]='-';
             }
         }
-        //fine reset e inizializazioni
+        //fine reset e inizializzazioni
         gotoxy(91, 0);
         printf(" 1 2 3 4 5 6 7 8 9 10");
         gotoxy(91, 1);
@@ -121,6 +137,7 @@ int main(){
         gotoxy(56,17);
         printf("|__1_/");
         nl=0;
+        // posizionamento navi giocatore
         do {
             for (i = 3; i < 10 ; ++i) {
                 gotoxy(0,i);
@@ -437,6 +454,7 @@ int main(){
         }while (NG[0]<5);
         NB[0]=0;
         j=1;
+        // posizionamento navi computer (bot)
         do {
             n=-NB[0]+5;
             nl=5-NB[0];
@@ -503,13 +521,19 @@ int main(){
             j+=5;
             NB[0]++;
         }while (NB[0]<5);
+        for (i = 0; i < 100; i+=2) {
+            pp[dp] = i + i / 10 % 2;
+            dp++;
+        }
         gotoxy(91, 2);
         i=2;
         for (i = 0; i < 10 ; ++i) {
             gotoxy(0,i);
             printf("                              ");
         }
+        // game loop
         do{
+            // display player board
             gotoxy(41, 2);
             i=2;
             for (r = 0; r < 10 ; r++) {
@@ -540,6 +564,7 @@ int main(){
                 i++;
                 gotoxy(91, i);
             }
+            // turno giocatore
             do {
                 ok=1;
                 for (i = 3; i < 10 ; ++i) {
@@ -604,7 +629,8 @@ int main(){
                         printf("posizione non valida");
                     }
                 }
-                if (ok!=0) {
+                // convalidazione mossa
+                if (ok==1) {
                     sr--;
                     sc--;
                     if (B[sr][sc]==1 || B[sr][sc]==3) {
@@ -614,7 +640,7 @@ int main(){
                             printf("                              ");
                         }
                         gotoxy(1, 2);
-                        printf("posizione gia' attacata");
+                        printf("posizione gia' attaccata");
                     } else if (B[sr][sc]==0) {
                         B[sr][sc]=1;
                         for (i = 2; i < 10 ; ++i) {
@@ -633,6 +659,7 @@ int main(){
                         printf("nave colpita");
                         j=1;
                         NB[0]=0;
+                        // verifica affondamento nave
                         do {
                             ok2=0;
                             nl=NB[j];
@@ -667,22 +694,26 @@ int main(){
                     }
                 }
             }while (ok==0);
+            // condizione vittoria giocatore
             if (nab==5)
                 continue;
+            // turno computer
             do {
                 ok=1;
+                // te == 0 -> no clue, random
                 if (te==0) {
-                    srb=rand() % 10;
-                    scb=rand() % 10;
-                    
-                    if (srb%2 != scb%2){
-                        ok=0;
-                        continue;
+                    if (dp == 0) {
+                        nab = 5; // bot resigns
+                        break;
                     }
-                    if ((srb-1<0 || P[srb-1][scb]=='O' || P[srb-1][scb]=='X') && (scb+1>9 || P[srb][scb+1]=='O' || P[srb][scb+1]=='X') && (srb+1>9 || P[srb+1][scb]=='O' || P[srb+1][scb]=='X') && (scb-1<0 || P[srb][scb-1]=='O' || P[srb][scb-1]=='X')){
-                        ok=0;
-                        continue;
+                    srb=rand() % dp;
+                    scb=pp[srb];
+                    for (int m = srb; m < dp - 1; m++) {
+                        pp[m] = pp[m + 1];
                     }
+                    dp--;
+                    srb=scb/10;
+                    scb=scb%10;
                     if (P[srb][scb]=='O' || P[srb][scb]=='X') {
                         ok=0;
                         continue;
@@ -709,6 +740,7 @@ int main(){
                         s=1;
                     }
                 }
+                // te == 1 -> hit, discovery phase
                 if (te==1) {
                     scb=tsc;
                     srb=tsr;
@@ -723,6 +755,32 @@ int main(){
                 }
                 if (P[srb][scb]=='H') {
                     P[srb][scb]='X';
+                    for (int m = 0; m < 4; m++) {
+                        int tmpr = (m + 1) / 2;
+                        int tmpc = 2 * (m % 2);
+                        tmpc = 1 - tmpc;
+                        tmpc *= (tmpr & 1);
+                        tmpr = 1 - tmpr;
+
+                        if (srb + tmpr < 0 || srb + tmpr > 9 || scb + tmpc < 0 || scb + tmpc > 9)
+                            continue;
+
+                        if (P[srb + tmpr][scb + tmpc] == 'O' || P[srb + tmpr][scb + tmpc] == 'X')
+                            continue;
+
+                        ok2 = 1;
+                        for (int l = 0; l < dp; l++) {
+                            if (pp[l] == (srb + tmpr) * 10 + (scb + tmpc)) {
+                                ok2 = 0;
+                                break;
+                            }
+                        }
+                        if (ok2 == 1) {
+                            pp[dp] = (srb + tmpr) * 10 + (scb + tmpc);
+                            dp++;
+                        }
+                    }
+
                     if (te==1)
                         te=3;
                     if (te==0)
@@ -763,6 +821,7 @@ int main(){
                         NG[0]++;
                     }while (NG[0]<5);
                 }
+                // te == 2 -> hit, direction known
                 if (te==2) {
                     if (ra[0]==1) {
                         srb++;
@@ -775,27 +834,7 @@ int main(){
                     }
                     te=1;
                 }
-                do {
-                    ok2=1;
-                    if (te==1) {
-                        ra[0]=rand() % 4+1;
-                        if (ra[0]==1 && srb-1>=0 && P[srb-1][scb]!='O' && P[srb-1][scb]!='X') {
-                            tsr=srb-1;
-                            tsc=scb;
-                        } else if (ra[0]==2 && scb+1<=9 && P[srb][scb+1]!='O' && P[srb][scb+1]!='X') {
-                            tsr=srb;
-                            tsc=scb+1;
-                        } else if (ra[0]==3 && srb+1<=9 && P[srb+1][scb]!='O' && P[srb+1][scb]!='X') {
-                            tsr=srb+1;
-                            tsc=scb;
-                        } else if (ra[0]==4 && scb-1>=0 && P[srb][scb-1]!='O' && P[srb][scb-1]!='X') {
-                            tsr=srb;
-                            tsc=scb-1;
-                        } else {
-                            ok2=0;
-                        }
-                    }
-                }while (ok2==0);
+                // te == 3 -> hit, moving in known direction
                 if (te==3) {
                     if (ra[0]==1 && srb-1>=0 && P[srb-1][scb]!='O' && P[srb-1][scb]!='X') {
                         srb--;
@@ -808,29 +847,123 @@ int main(){
                     } else
                         te=4;
                 }
+                // te == 4 -> hit, reversing direction
                 if (te==4) {
                     if (ra[0]==1) {
-                        srb=tsr+2;
-                        scb=tsc;
-                        te=3;
-                        ra[0]=3;
+                        if (tsr+2>9 || P[tsr+2][tsc]=='O' || P[tsr+2][tsc]=='X') {
+                            srb--;
+                            te=1;
+                        }else {
+                            srb=tsr+2;
+                            scb=tsc;
+                            tsr++;
+                            te=3;
+                            ra[0]=3;
+                        }
                     } else if (ra[0]==2) {
-                        scb=tsc-2;
-                        srb=tsr;
-                        te=3;
-                        ra[0]=4;
+                        if (tsc-2<0 || P[tsr][tsc-2]=='O' || P[tsr][tsc-2]=='X') {
+                            scb--;
+                            te=1;
+                        }else {
+                            scb=tsc-2;
+                            srb=tsr;
+                            tsc--;
+                            te=3;
+                            ra[0]=4;
+                        }
                     } else if (ra[0]==3) {
-                        srb=tsr-2;
-                        scb=tsc;
-                        te=3;
-                        ra[0]=1;
+                        if (tsr-2<0 || P[tsr-2][tsc]=='O' || P[tsr-2][tsc]=='X') {
+                            srb--;
+                            te=1;
+                        }else {
+                            srb=tsr-2;
+                            scb=tsc;
+                            tsr--;
+                            te=3;
+                            ra[0]=1;
+                        }
                     } else if (ra[0]==4) {
-                        srb=tsr;
-                        scb=tsc+2;
-                        te=3;
-                        ra[0]=2;
+                        if (tsc+2>9 || P[tsr][tsc+2]=='O' || P[tsr][tsc+2]=='X') {
+                            scb++;
+                            te=1;
+                        }else {
+                            srb=tsr;
+                            scb=tsc+2;
+                            tsc++;
+                            te=3;
+                            ra[0]=2;
+                        }
                     }
                 }
+                int aj[4] = {1, 2, 3, 4};
+                int daj = 4;
+                int raj;
+
+                if (te!=1)
+                    continue;
+                do {
+                    ok2=1;
+                    if (daj==0) {
+                        for (int m = 0; m < 4; m++) {
+                            aj[m] = m + 1;
+                        }
+                        daj=4;
+                        ok2=1;
+                        do {
+                            if (daj==0) {
+                                te=0;
+                                break;
+                            }
+                            raj = rand() % daj;
+                            ra[0]=aj[raj];
+                            for (int m = raj; m < daj - 1; m++) {
+                                aj[m] = aj[m + 1];
+                            }
+                            daj--;
+
+                            if (ra[0]==1 && srb-1>=0 && P[srb-1][scb]=='X') {
+                                srb=srb-1;
+                            } else if (ra[0]==2 && scb+1<=9 && P[srb][scb+1]=='X') {
+                                scb=scb+1;
+                            } else if (ra[0]==3 && srb+1<=9 && P[srb+1][scb]=='X') {
+                                srb=srb+1;
+                            } else if (ra[0]==4 && scb-1>=0 && P[srb][scb-1]=='X') {
+                                scb=scb-1;
+                            } else {
+                                ok2=0;
+                            }
+                            if (ok2==1) {
+                                for (int m = 0; m < 4; m++) {
+                                    aj[m] = m + 1;
+                                }
+                                daj=4;
+                            }
+                        }while (ok2==0);
+                        if (te==0)
+                            break;
+                    }
+                    raj = rand() % daj;
+                    ra[0]=aj[raj];
+                    for (int m = raj; m < daj - 1; m++) {
+                        aj[m] = aj[m + 1];
+                    }
+                    daj--;
+                    if (ra[0]==1 && srb-1>=0 && P[srb-1][scb]!='O' && P[srb-1][scb]!='X') {
+                        tsr=srb-1;
+                        tsc=scb;
+                    } else if (ra[0]==2 && scb+1<=9 && P[srb][scb+1]!='O' && P[srb][scb+1]!='X') {
+                        tsr=srb;
+                        tsc=scb+1;
+                    } else if (ra[0]==3 && srb+1<=9 && P[srb+1][scb]!='O' && P[srb+1][scb]!='X') {
+                        tsr=srb+1;
+                        tsc=scb;
+                    } else if (ra[0]==4 && scb-1>=0 && P[srb][scb-1]!='O' && P[srb][scb-1]!='X') {
+                        tsr=srb;
+                        tsc=scb-1;
+                    } else {
+                        ok2=0;
+                    }
+                }while (ok2==0);
             }while (ok==0);
         }while (nag<5 && nab<5);
         gotoxy(0,0);
