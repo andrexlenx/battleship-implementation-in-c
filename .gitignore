@@ -1,0 +1,26 @@
+# Compiled executables
+battleship
+battleship.exe
+test_battleship
+test_battleship.exe
+
+# Object files
+*.o
+*.obj
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Temporary files
+*~
+*.swp
+*.swo
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
